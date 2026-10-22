@@ -34,8 +34,10 @@ PLAN-*.md
 MoTaDoAn.md
 SPEC.md
 GLOSSARY.md
-docs/
-**/docs/**
+# docs/ chặn mặc định; chỉ mở docs/adr và docs/deploy.md (issue #2, #10)
+**/docs/*
+!**/docs/adr/
+!**/docs/deploy.md
 **/prompts/**
 **/launch-plans.ps1
 **/run-plan.ps1

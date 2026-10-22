@@ -1,5 +1,0 @@
-Nguon anh mau (mo phong chup anh). Anh Wikimedia Commons thu nho con rong 960 px.
-dog_bike_car.jpg  - https://resources.djl.ai/images/dog_bike_car.jpg (anh mau cua Deep Java Library, Apache-2.0)
-cat.jpg           - https://commons.wikimedia.org/wiki/File:Cat_November_2010-1a.jpg (CC BY-SA 3.0, tac gia xem trang nguon)
-dogs.jpg          - https://commons.wikimedia.org/wiki/File:Collage_of_Nine_Dogs.jpg (CC BY-SA 3.0, tac gia xem trang nguon)
-taxi.jpg          - https://commons.wikimedia.org/wiki/File:Taxi_in_New_York_City.jpg (CC BY-SA 4.0, tac gia xem trang nguon)

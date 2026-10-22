@@ -1,4 +1,0 @@
-dog_bike_car.jpg
-cat.jpg
-dogs.jpg
-taxi.jpg

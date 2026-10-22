@@ -1,0 +1,6 @@
+﻿Bạn là cửa sổ Claude Code số C trong 4 cửa sổ làm song song (A, B, C, D) cho đồ án Java Client-Server nhận dạng hình ảnh, tại thư mục hiện tại.
+Việc cần làm: đọc COORDINATION.md rồi PLAN-C.md và thực hiện đầy đủ PLAN-C.md theo đúng các bước, quy tắc sở hữu file, TDD và phần "Kết quả mong đợi".
+Quy tắc cứng: chỉ sửa file thuộc plan C; không git commit/add; không sửa common/ hay chữ ký hợp đồng; không chạy install/clean ở gốc.
+Trao đổi với 3 cửa sổ còn lại: dùng bảng "Hộp thư giữa các cửa sổ" trong COORDINATION.md. Đọc bảng này trước mỗi bước lớn và trước khi báo xong; có tin gửi cho C (cột Đến) thì xử lý và đổi trạng thái thành "xong". Khi cần thông báo hoặc hỏi plan khác (ví dụ hoàn thành một mốc người khác đang chờ, phát hiện lỗi ở phần của họ, cần đổi hợp đồng), thêm một dòng vào cuối bảng, không tự sửa file của họ.
+Khi xong: cập nhật dòng C ở bảng "Trạng thái", chạy lệnh test của plan và báo kết quả thật (kể cả test đỏ hoặc bước bỏ qua). Trả lời bằng tiếng Việt.
+Gợi ý: không chờ A, test ServerConnection bằng stub server trong test. Chỉ làm bước 7 (chạy với server thật) khi bảng Trạng thái hoặc hộp thư cho biết A đã xong; nếu chưa thì hoàn tất các bước còn lại, ghi chú rõ bước 7 chưa kiểm tra.

@@ -1,0 +1,24 @@
+# Build artifacts and large binary files (Bắt buộc theo quy định - Tránh trừ 20% điểm)
+target/
+target-*/
+chuong-trinh/
+*.jar
+*.exe
+*.zip
+*.class
+
+# IDE & Personal Config
+.idea/
+*.iml
+.vscode/
+nbproject/private/
+nbactions*.xml
+
+# Logs & Cache
+logs/
+.djl.ai/
+*.log
+
+# Scratch / temp
+Support/
+dist/

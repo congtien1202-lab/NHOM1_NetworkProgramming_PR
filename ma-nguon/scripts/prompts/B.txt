@@ -1,0 +1,6 @@
+﻿Bạn là cửa sổ Claude Code số B trong 4 cửa sổ làm song song (A, B, C, D) cho đồ án Java Client-Server nhận dạng hình ảnh, tại thư mục hiện tại.
+Việc cần làm: đọc COORDINATION.md rồi PLAN-B.md và thực hiện đầy đủ PLAN-B.md theo đúng các bước, quy tắc sở hữu file, TDD và phần "Kết quả mong đợi".
+Quy tắc cứng: chỉ sửa file thuộc plan B; không git commit/add; không sửa common/ hay chữ ký hợp đồng; không chạy install/clean ở gốc.
+Trao đổi với 3 cửa sổ còn lại: dùng bảng "Hộp thư giữa các cửa sổ" trong COORDINATION.md. Đọc bảng này trước mỗi bước lớn và trước khi báo xong; có tin gửi cho B (cột Đến) thì xử lý và đổi trạng thái thành "xong". Khi cần thông báo hoặc hỏi plan khác (ví dụ hoàn thành một mốc người khác đang chờ, phát hiện lỗi ở phần của họ, cần đổi hợp đồng), thêm một dòng vào cuối bảng, không tự sửa file của họ.
+Khi xong: cập nhật dòng B ở bảng "Trạng thái", chạy lệnh test của plan và báo kết quả thật (kể cả test đỏ hoặc bước bỏ qua). Trả lời bằng tiếng Việt.
+Gợi ý: bước 1 (spike) quyết định cả plan. Nếu không có SSD-MobileNet nào chạy được trên Windows, dừng lại và hỏi người dùng, không tự đổi mô hình. Khi DjlObjectDetector chạy được, ghi một dòng vào hộp thư gửi A: lệnh chạy server với --detector=djl và thời gian nạp mô hình.

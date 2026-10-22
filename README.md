@@ -18,9 +18,9 @@ Dự án xây dựng hệ thống nhận dạng hình ảnh phân tán hoạt đ
 
 | MSSV | Họ và Tên | Công việc đã thực hiện | Merge Requests / PR |
 | :--- | :--- | :--- | :--- |
-| **2380614894** | **Trần Công Tiến** | Khởi tạo khung dự án Maven đa module, thiết kế giao thức mạng TCP nhị phân (`common`) và các lớp stub hợp đồng | **#1** |
+| **2380614894** | **Trần Công Tiến** | Khởi tạo khung Maven (`common`); Xây dựng Client Swing kết nối Socket TCP, chọn ảnh và gửi nhận dạng | **#1, #6** |
 | **2380601216** | **Hồ Ngọc Linh** | Xây dựng module Server nhận dạng AI và tích hợp mô hình nhận dạng vật thể | *(Đang thực hiện)* |
-| **2380600020** | **Nguyễn Văn An** | Thiết kế giao diện Client Swing, xử lý luồng kết nối mạng và hiển thị kết quả nhận dạng | *(Đang thực hiện)* |
+| **2380600020** | **Nguyễn Văn An** | Xây dựng Server TCP đa luồng, quản lý phiên kết nối và ghi nhật ký (logging) | *(Đang thực hiện)* |
 | **2380600688** | **Vương Thị Mỹ Hoa** | Xây dựng chức năng quản lý lịch sử nhận dạng và xuất kết quả (PNG, CSV) | *(Đang thực hiện)* |
 
 ---

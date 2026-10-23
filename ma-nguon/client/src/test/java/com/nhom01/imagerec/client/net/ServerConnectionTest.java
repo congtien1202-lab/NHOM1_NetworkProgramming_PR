@@ -165,6 +165,88 @@ class ServerConnectionTest {
     }
 
     @Test
+    void heartbeatPingMultipleTimesSuccess() throws Exception {
+        serve((in, out, socket) -> {
+            read(in);
+            ProtocolCodec.write(out, new Message.HelloOk(1));
+            read(in);
+            ProtocolCodec.write(out, new Message.Pong());
+            read(in);
+            ProtocolCodec.write(out, new Message.Pong());
+        });
+        connection.connect(LOCALHOST, port(), "client-heartbeat");
+
+        assertTrue(connection.ping());
+        assertTrue(connection.ping());
+        assertTrue(connection.isConnected());
+    }
+
+    @Test
+    void pingReturnsFalseWhenServerReturnsUnexpectedMessage() throws Exception {
+        serve((in, out, socket) -> {
+            read(in);
+            ProtocolCodec.write(out, new Message.HelloOk(1));
+            read(in);
+            ProtocolCodec.write(out, new Message.Hello("wrong"));
+        });
+        connection.connect(LOCALHOST, port(), "c");
+
+        assertFalse(connection.ping());
+        assertFalse(connection.isConnected());
+    }
+
+    @Test
+    void pingReturnsFalseWhenServerReturnsError() throws Exception {
+        serve((in, out, socket) -> {
+            read(in);
+            ProtocolCodec.write(out, new Message.HelloOk(1));
+            read(in);
+            ProtocolCodec.write(out, new Message.ErrorReply(ErrorCode.BAD_MESSAGE, "Lỗi"));
+        });
+        connection.connect(LOCALHOST, port(), "c");
+
+        assertFalse(connection.ping());
+        assertFalse(connection.isConnected());
+    }
+
+    @Test
+    void pingReturnsFalseWhenNotConnected() {
+        assertFalse(connection.ping());
+        assertFalse(connection.isConnected());
+    }
+
+    @Test
+    void reconnectAfterConnectionLostSuccess() throws Exception {
+        serve((in, out, socket) -> {
+            read(in);
+            ProtocolCodec.write(out, new Message.HelloOk(1));
+        });
+        int session1 = connection.connect(LOCALHOST, port(), "c");
+        assertEquals(1, session1);
+
+        assertFalse(connection.ping());
+        assertFalse(connection.isConnected());
+
+        try (ServerSocket recoveredListener = new ServerSocket(0)) {
+            Thread t = new Thread(() -> {
+                try (Socket s = recoveredListener.accept()) {
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    DataOutputStream out = new DataOutputStream(s.getOutputStream());
+                    ProtocolCodec.read(in);
+                    ProtocolCodec.write(out, new Message.HelloOk(2));
+                } catch (IOException ignored) {
+                }
+            });
+            t.setDaemon(true);
+            t.start();
+
+            int session2 = connection.connect(LOCALHOST, recoveredListener.getLocalPort(), "c");
+            assertEquals(2, session2);
+            assertTrue(connection.isConnected());
+        }
+    }
+
+    @Test
     void detectOnDroppedConnectionThrowsIoExceptionAndMarksDisconnected() throws Exception {
         serve((in, out, socket) -> {
             read(in);

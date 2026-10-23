@@ -274,7 +274,12 @@ public final class MainFrame extends JFrame {
             if (!alive && connection == target) {
                 onConnectionLost();
             }
-        }, error -> pingInFlight = false);
+        }, error -> {
+            pingInFlight = false;
+            if (connection == target) {
+                onConnectionLost();
+            }
+        });
     }
 
     // ---- Chọn ảnh ----

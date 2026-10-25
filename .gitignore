@@ -38,6 +38,11 @@ GLOSSARY.md
 **/docs/*
 !**/docs/adr/
 !**/docs/deploy.md
+!**/docs/huan-luyen/
+# huan-luyen: chỉ nhận script, nhật ký, kết quả; dữ liệu và trọng số thì không
+*.pt
+**/datasets/
+**/runs/
 **/prompts/**
 **/launch-plans.ps1
 **/run-plan.ps1

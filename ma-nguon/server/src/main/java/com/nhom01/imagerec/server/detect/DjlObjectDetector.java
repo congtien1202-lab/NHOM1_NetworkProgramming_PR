@@ -21,7 +21,7 @@ import javax.imageio.ImageIO;
 /**
  * Nhận dạng đối tượng bằng DJL + YOLOv8 (ONNX, engine OnnxRuntime, chạy CPU).
  *
- * <p>Mặc định nạp mô hình COCO 80 lớp đóng sẵn trong jar ({@code /models/yolov8s.onnx} và
+ * <p>Mặc định nạp mô hình COCO 80 lớp + monkey (81 lớp) đóng sẵn trong jar ({@code /models/yolov8s-coco81.onnx} và
  * {@code /models/synset.txt}); có thể trỏ tới một file ONNX khác bằng {@link #DjlObjectDetector(Path)}
  * (nhãn lấy từ {@code synset.txt} nằm cạnh file đó).
  *
@@ -32,7 +32,7 @@ public final class DjlObjectDetector implements ObjectDetector {
     /** Ngưỡng tin cậy giữ 0.3 như bản SSD cũ để so sánh công bằng. */
     static final double MIN_CONFIDENCE = 0.3;
     private static final String RESOURCE_DIR = "/models/";
-    private static final String MODEL_FILE = "yolov8s.onnx";
+    private static final String MODEL_FILE = "yolov8s-coco81.onnx";
     private static final String SYNSET_FILE = "synset.txt";
     private static final double NANOS_PER_SECOND = 1_000_000_000.0;
 

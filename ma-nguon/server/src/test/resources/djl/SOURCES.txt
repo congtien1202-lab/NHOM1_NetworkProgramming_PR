@@ -1,0 +1,6 @@
+monkey.jpg
+  Open Images V7 (tap test), ImageID 9ea934f97cf67678, 1024x768.
+  Tac gia: Marion O'Sullivan, tieu de "Capuchin Monkey".
+  Nguon: https://www.flickr.com/photos/mollyig/469953497
+  Giay phep: CC BY 2.0 https://creativecommons.org/licenses/by/2.0/
+  Anh nam trong tap test cua qua trinh fine-tune, khong dung de huan luyen.

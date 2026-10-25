@@ -1,0 +1,17 @@
+{
+ "tag": "ft_test_monkey",
+ "weights": "runs\\ft81c\\weights\\best.pt",
+ "conf": 0.3,
+ "images": 428,
+ "monkey_boxes": 551,
+ "images_with_person_pred": 9,
+ "monkey_boxes_covered_by_person": 4,
+ "top_label_per_monkey_box": {
+  "monkey": 509,
+  "(khong co du doan)": 23,
+  "bear": 8,
+  "dog": 6,
+  "person": 4,
+  "elephant": 1
+ }
+}

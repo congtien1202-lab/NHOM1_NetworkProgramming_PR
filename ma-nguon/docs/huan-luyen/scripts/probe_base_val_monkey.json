@@ -1,0 +1,21 @@
+{
+ "tag": "base_val_monkey",
+ "weights": "yolov8s.pt",
+ "conf": 0.3,
+ "images": 155,
+ "monkey_boxes": 198,
+ "images_with_person_pred": 8,
+ "monkey_boxes_covered_by_person": 5,
+ "top_label_per_monkey_box": {
+  "bear": 88,
+  "dog": 50,
+  "(khong co du doan)": 25,
+  "cat": 14,
+  "bird": 12,
+  "elephant": 2,
+  "horse": 2,
+  "sheep": 2,
+  "person": 2,
+  "teddy bear": 1
+ }
+}

@@ -63,3 +63,9 @@ Ultralytics và trọng số YOLOv8 dùng **AGPL-3.0**. Với đồ án học t�
 - Mô hình mặc định trong jar đổi thành `yolov8s-coco81.onnx` (YOLOv8s tinh chỉnh thêm lớp `monkey`, đầu ra `[1, 85, 8400]`), `synset.txt` có 81 nhãn (`monkey` ở cuối). Bản 80 lớp (`yolov8s.onnx`, release `model-yolov8s-coco80-v1`) vẫn tải được nhưng không còn là mặc định.
 - Mô hình 81 lớp tải từ release `model-yolov8s-coco81-v1` bằng `scripts/download-model.*`. `YoloTranslator` không đổi: số lớp lấy từ `synset.txt`.
 - Quy trình huấn luyện, số đo và hạn chế nằm ở `docs/huan-luyen/nhat-ky.md`.
+
+## Cập nhật: lớp bảo vệ MonkeyGuard
+
+- Kiểm thử độc lập (`docs/huan-luyen/kiem-thu-doc-lap.md`) thấy khung người bị gán `monkey` hiếm nhưng có thật (4/10 777 khung COCO val2017, 4/920 khung Open Images; có ca 0,885). Thêm hậu xử lý `MonkeyGuard` sau NMS, chỉ được bỏ box `monkey`: bỏ box dưới 0,5; nếu còn khỉ thì chạy YOLOv8s gốc 80 lớp và bỏ box `monkey` trùng box `person` của mô hình gốc (độ tin cậy từ 0,2, IoU từ 0,5).
+- Mô hình gốc (`/models/guard/yolov8s-coco80.onnx`) được nạp một lần lúc Server khởi động, dùng chung `--ortThreads`, và chỉ được chạy khi còn box `monkey`. File này không nằm trong git; `scripts/download-model.*` tải từ release `model-yolov8s-coco80-guard-v1` và kiểm SHA-256. Đây là một bản export khác (cùng kích thước, khác nội dung) với `yolov8s.onnx` của release `model-yolov8s-coco80-v1`, vì số đo của luật được thực hiện với file này.
+- Đổi lại: jar nặng thêm khoảng 45 MB (~94 MB), ảnh có khỉ chậm hơn (trên VPS khoảng +250-350 ms), recall khỉ trên `test_monkey` giảm 491 → 461 trên 551 khung (chủ yếu do ngưỡng 0,5), RSS của Java tăng. Còn sót: ảnh cận mặt người (0,885) và bóng đen chữ YOGA (0,83) không luật nào dựa trên box `person` bắt được.

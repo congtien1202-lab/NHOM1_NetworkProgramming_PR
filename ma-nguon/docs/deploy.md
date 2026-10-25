@@ -167,7 +167,7 @@ Từ 22/10/2026 VPS chạy jar YOLOv8s 81 lớp (COCO 80 lớp + `monkey`, ADR-0
 /usr/bin/java -Xms512m -Xmx2g -jar /opt/imagerec/server-1.0-SNAPSHOT-all.jar --gui=false --detector=djl --port=5000 --maxClients=20 --ortThreads=2
 ```
 
-MonkeyGuard là luật hậu xử lý sau NMS: bỏ khung `monkey` có độ tin cậy dưới 0,5; nếu còn khung `monkey` thì chạy thêm YOLOv8s gốc 80 lớp (nạp một lần lúc khởi động) và bỏ khung `monkey` trùng (IoU từ 0,5) với khung `person` có độ tin cậy từ 0,2. Ảnh không có khỉ không tốn thêm một lần suy luận. **Mã MonkeyGuard thuộc issue #15 (GitHub #34), chưa có trong nhánh chứa tài liệu này**; số đo bên dưới là của jar đang chạy trên VPS.
+MonkeyGuard là luật hậu xử lý sau NMS: bỏ khung `monkey` có độ tin cậy dưới 0,5; nếu còn khung `monkey` thì chạy thêm YOLOv8s gốc 80 lớp (nạp một lần lúc khởi động) và bỏ khung `monkey` trùng (IoU từ 0,5) với khung `person` có độ tin cậy từ 0,2. Ảnh không có khỉ không tốn thêm một lần suy luận. Mã nằm ở `MonkeyGuard` và `DjlObjectDetector` (test `MonkeyGuardTest`); mô hình gốc `yolov8s-coco80.onnx` nạp một lần lúc khởi động, dùng chung `--ortThreads`, và chỉ chạy khi còn khung `monkey`. Đặc tả và kết quả kiểm thử độc lập: `docs/huan-luyen/kiem-thu-doc-lap.md`. Số đo bên dưới là của jar đang chạy trên VPS.
 
 `--ortThreads=N` (hoặc `ortThreads=N` trong `server.properties`) đặt số luồng intra-op của ONNX Runtime; để trống thì dùng mặc định (số lõi). Thử trên VPS (4 vCPU) bằng một Server phụ ở cổng 5001, đo qua loopback, 4 ảnh mẫu, 3 lượt sau một lượt khởi động (dịch vụ chính vẫn chạy song song nên có nhiễu):
 
@@ -191,6 +191,7 @@ Số đo qua Internet với jar đang chạy (Client ở Windows gọi `ai.devli
 - RAM: tiến trình Java RSS khoảng 1,47 GB sau các đợt đo (trước khi có MonkeyGuard khoảng 1,0 GB); `free -m` còn available khoảng 3,9 GB. Chưa tách được nguyên nhân mức tăng.
 - Kết nối (HELLO đến HELLO_OK): khoảng 60-90 ms.
 - Số đo không cô lập (mạng và VPS dùng chung), chưa có khoảng tin cậy.
+- Ca còn sót: ảnh cận mặt người (`monkey` 0,885) và bóng đen chữ YOGA (0,83) không bị luật bắt; recall khỉ trên `test_monkey` giảm 491 → 461 trên 551 khung (chủ yếu do ngưỡng 0,5).
 
 ### Các bản sao lưu jar và cách quay lại
 

@@ -2,8 +2,8 @@
 # The Oracle JDK ships an old msvcp140/vcruntime140 that breaks ONNX Runtime (ADR-0003), so the newer
 # copies from C:\Windows\System32 are copied over the ones in the app-image runtime\bin.
 # Output: dist\NhanDangAnh-Server\NhanDangAnh-Server.exe (starts with --detector=djl --port=5000, opens the Server window).
-# Requires JDK 21+ with jpackage on the packaging machine, and the ONNX model downloaded first
-# (scripts\download-model.cmd), because the model is packed into the Server jar.
+# Requires JDK 21+ with jpackage on the packaging machine, and the ONNX models (main + MonkeyGuard)
+# downloaded first (scripts\download-model.cmd), because they are packed into the Server jar.
 # Usage (from ma-nguon): powershell -ExecutionPolicy Bypass -File scripts\package-server.ps1
 # (ASCII only: Windows PowerShell 5.1 reads BOM-less scripts as ANSI.)
 
@@ -17,6 +17,8 @@ $jar = Join-Path $root 'server\target\server-1.0-SNAPSHOT-all.jar'
 
 $model = Join-Path $root 'server\src\main\resources\models\yolov8s-coco81.onnx'
 if (-not (Test-Path $model)) { throw "Missing $model. Run scripts\download-model.cmd first." }
+$guard = Join-Path $root 'server\src\main\resources\models\guard\yolov8s-coco80.onnx'
+if (-not (Test-Path $guard)) { throw "Missing $guard. Run scripts\download-model.cmd first." }
 
 Push-Location $root
 try {

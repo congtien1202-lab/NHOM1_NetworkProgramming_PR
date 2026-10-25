@@ -1,0 +1,113 @@
+{
+ "khong luat": {
+  "rule": [
+   0.3,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "A_nham": 3,
+  "A_monkey_con": 27,
+  "B_nham": 1,
+  "B_monkey_con": 14,
+  "B_person": 5317,
+  "oi_person_nham": 4,
+  "oi_person_box": 920,
+  "manual_monkey": 1,
+  "val_ap50": 0.9182,
+  "val_recall": [
+   175,
+   198
+  ],
+  "test_ap50": 0.9317,
+  "test_recall": [
+   491,
+   551
+  ],
+  "A_person_box": 5460
+ },
+ "chi Tm=0.5": {
+  "rule": [
+   0.5,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "A_nham": 3,
+  "A_monkey_con": 19,
+  "B_nham": 0,
+  "B_monkey_con": 6,
+  "B_person": 5317,
+  "oi_person_nham": 1,
+  "oi_person_box": 920,
+  "manual_monkey": 0,
+  "val_ap50": 0.8918,
+  "val_recall": [
+   163,
+   198
+  ],
+  "test_ap50": 0.9118,
+  "test_recall": [
+   466,
+   551
+  ],
+  "A_person_box": 5460
+ },
+ "luat cuoi (Tm=0.5 + veto YOLO goc P=0.2,U=0.5)": {
+  "rule": [
+   0.5,
+   null,
+   null,
+   null,
+   0.2,
+   0.5,
+   null
+  ],
+  "A_nham": 1,
+  "A_monkey_con": 16,
+  "B_nham": 0,
+  "B_monkey_con": 6,
+  "B_person": 5317,
+  "oi_person_nham": 1,
+  "oi_person_box": 920,
+  "manual_monkey": 0,
+  "val_ap50": 0.8893,
+  "val_recall": [
+   162,
+   198
+  ],
+  "test_ap50": 0.9072,
+  "test_recall": [
+   461,
+   551
+  ],
+  "A_person_box": 5460
+ },
+ "ca_con_sot": [
+  [
+   "COCO",
+   "000000500716.jpg",
+   "nua A",
+   0.8846
+  ],
+  [
+   "OI Person",
+   "1490c09342dd7dc4.jpg",
+   "",
+   0.8299
+  ]
+ ],
+ "khi_that_bi_mat": 43,
+ "anh_nguoi_va_khi": {
+  "anh": 10,
+  "box_khi": 15,
+  "mat_truoc_luat": 4,
+  "mat_sau_luat": 4
+ }
+}

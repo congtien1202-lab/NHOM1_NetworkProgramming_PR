@@ -49,6 +49,8 @@ class DjlObjectDetectorTest {
         List<Detection> detections = detector.detect(sample);
 
         assertThat(labels(detections)).contains("dog", "bicycle");
+        // xe phía sau là "truck" với YOLOv8s, nhưng chấp nhận "car" nếu đổi trọng số
+        assertThat(labels(detections)).containsAnyOf("truck", "car");
         for (Detection d : detections) {
             assertThat(d.confidence()).isBetween(DjlObjectDetector.MIN_CONFIDENCE, 1.0);
             assertThat(d.x()).isBetween(0.0, 1.0);

@@ -5,6 +5,7 @@ import com.nhom01.imagerec.server.detect.FakeObjectDetector;
 import com.nhom01.imagerec.server.detect.ObjectDetector;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -34,7 +35,7 @@ public final class ServerMain {
 
         ObjectDetector detector;
         try {
-            detector = createDetector(config.detector());
+            detector = createDetector(config);
         } catch (RuntimeException e) {
             log.severe("Không khởi tạo được detector '" + config.detector() + "': " + e.getMessage());
             System.exit(EXIT_STARTUP_FAILED);
@@ -62,13 +63,14 @@ public final class ServerMain {
         }, "shutdown"));
     }
 
-    private static ObjectDetector createDetector(String name) {
-        if (!ServerConfig.DETECTOR_DJL.equals(name)) {
+    private static ObjectDetector createDetector(ServerConfig config) {
+        if (!ServerConfig.DETECTOR_DJL.equals(config.detector())) {
             return new FakeObjectDetector();
         }
         try {
             Class<?> clazz = Class.forName("com.nhom01.imagerec.server.detect.DjlObjectDetector");
-            return (ObjectDetector) clazz.getDeclaredConstructor().newInstance();
+            return (ObjectDetector) clazz.getConstructor(Path.class, Integer.class)
+                    .newInstance(config.model() == null ? null : Path.of(config.model()), config.ortThreads());
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("PLAN-B: DjlObjectDetector chưa được cài đặt", e);
         } catch (ReflectiveOperationException e) {

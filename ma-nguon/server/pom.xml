@@ -16,7 +16,6 @@
     <properties>
         <main.class>com.nhom01.imagerec.server.ServerMain</main.class>
         <djl.version>0.38.0</djl.version>
-        <mxnet.native.version>1.9.1</mxnet.native.version>
     </properties>
 
     <dependencies>
@@ -29,30 +28,11 @@
             <artifactId>api</artifactId>
             <version>${djl.version}</version>
         </dependency>
+        <!-- Engine OnnxRuntime chạy CPU; kéo theo thư viện native Windows/Linux/macOS -->
         <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-engine</artifactId>
+            <groupId>ai.djl.onnxruntime</groupId>
+            <artifactId>onnxruntime-engine</artifactId>
             <version>${djl.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-model-zoo</artifactId>
-            <version>${djl.version}</version>
-        </dependency>
-        <!-- Thư viện native MXNet cho Windows x64 và Linux x64 (VPS) -->
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-native-mkl</artifactId>
-            <classifier>win-x86_64</classifier>
-            <version>${mxnet.native.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-native-mkl</artifactId>
-            <classifier>linux-x86_64</classifier>
-            <version>${mxnet.native.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -74,6 +54,24 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <!-- Chỉ giữ native ONNX Runtime cho Windows x64 và Linux x64 (VPS); bỏ macOS, aarch64, file debug -->
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <configuration>
+                            <filters combine.children="append">
+                                <filter>
+                                    <artifact>com.microsoft.onnxruntime:onnxruntime</artifact>
+                                    <excludes>
+                                        <exclude>ai/onnxruntime/native/osx-*/**</exclude>
+                                        <exclude>ai/onnxruntime/native/linux-aarch64/**</exclude>
+                                        <exclude>**/*.pdb</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

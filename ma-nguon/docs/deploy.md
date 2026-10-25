@@ -46,7 +46,7 @@ Yêu cầu: VPS Ubuntu, từ 2 GB RAM, có IP tĩnh.
 1. **Cài Java**: `sudo apt update && sudo apt install -y openjdk-17-jre-headless` (hoặc bản mới hơn).
 2. **Đưa jar lên VPS**, ví dụ vào `/opt/imagerec/`:
    `scp server/target/server-1.0-SNAPSHOT-all.jar user@<ip>:/opt/imagerec/`
-3. **Tải sẵn mô hình** theo hướng dẫn trong `docs/adr/0002-chon-engine-djl.md` (và `scripts/download-model.*` nếu có) để Server không phải tải khi khởi động. Cache mặc định ở `~/.djl.ai`; có thể đặt biến môi trường `DJL_CACHE_DIR`. Chạy Server một lần để xác nhận lần chạy thứ hai không còn tải gì.
+3. **Mô hình** YOLOv8s (ONNX) đã nằm trong jar nếu bạn tải nó trước khi build (`scripts/download-model.sh`, xem ADR-0003), nên VPS không phải tải gì lúc chạy. Có thể bỏ qua `--model`; chỉ dùng khi muốn nạp file ONNX khác (cần `synset.txt` cạnh nó).
 4. **Mở cổng 5000**: trên VPS `sudo ufw allow 5000/tcp` (đồng thời `sudo ufw allow OpenSSH` trước khi bật ufw); và mở TCP 5000 trong firewall/security group của nhà cung cấp.
 5. **Tên miền**: tạo bản ghi DNS **A** `<tên miền>` trỏ về IP tĩnh của VPS.
 6. **Chạy bằng systemd**: tạo `/etc/systemd/system/imagerec.service`:

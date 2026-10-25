@@ -17,10 +17,10 @@ Dự án xây dựng hệ thống nhận dạng hình ảnh phân tán hoạt đ
 ## 2. Bảng ma trận thống kê đóng góp của thành viên
 *(Bảng theo dõi tiến độ và đối chiếu đánh giá quá trình theo quy định thực hiện đồ án)*
 
-| MSSV | Họ và Tên | Công việc đã thực hiện | Merge Requests / PR |
+| MSSV | Họ và Tên | Công việc đã thực hiện | Issue |
 | :--- | :--- | :--- | :--- |
 | **2380614894** | **Trần Công Tiến** | Khởi tạo khung Maven (`common`); Xây dựng Client Swing kết nối Socket TCP, chọn ảnh và gửi nhận dạng | *#1, #6, #7* |
-| **2380601216** | **Hồ Ngọc Linh** | Xây dựng module Server nhận dạng AI và tích hợp mô hình nhận dạng vật thể; triển khai Server lên VPS và tên miền ai.devlinh.com (systemd, ufw); nâng cấp YOLOv8s ONNX, fine-tune lớp monkey, đóng gói Windows, MonkeyGuard | *#28, #35, #38, #39, #40, #41, #42, #43* |
+| **2380601216** | **Hồ Ngọc Linh** | Xây dựng module Server nhận dạng AI và tích hợp mô hình nhận dạng vật thể; triển khai Server lên VPS và tên miền ai.devlinh.com (systemd, ufw); nâng cấp YOLOv8s ONNX, fine-tune lớp monkey, đóng gói Windows, MonkeyGuard | *#2, #5, #10, #12, #13, #14, #15* |
 | **2380600020** | **Nguyễn Văn An** | Xây dựng Server TCP đa luồng, quản lý phiên kết nối và ghi nhật ký (logging) | *#3, #4* |
 | **2380600688** | **Vương Thị Mỹ Hoa** | Xây dựng chức năng quản lý lịch sử nhận dạng và xuất kết quả (PNG, CSV) | *#8, #9* |
 

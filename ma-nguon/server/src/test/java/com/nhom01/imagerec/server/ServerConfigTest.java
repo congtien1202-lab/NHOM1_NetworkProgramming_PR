@@ -12,7 +12,7 @@ class ServerConfigTest {
     void defaultsWhenNothingGiven() {
         ServerConfig config = ServerConfig.parse(new Properties(), new String[0]);
 
-        assertThat(config).isEqualTo(new ServerConfig(5000, "fake", true, 20));
+        assertThat(config).isEqualTo(new ServerConfig(5000, "fake", true, 20, null));
     }
 
     @Test
@@ -24,7 +24,14 @@ class ServerConfigTest {
         ServerConfig config = ServerConfig.parse(properties,
                 new String[] {"--port=7000", "--gui=false", "--maxClients=3"});
 
-        assertThat(config).isEqualTo(new ServerConfig(7000, "djl", false, 3));
+        assertThat(config).isEqualTo(new ServerConfig(7000, "djl", false, 3, null));
+    }
+
+    @Test
+    void modelArgumentIsKept() {
+        ServerConfig config = ServerConfig.parse(new Properties(), new String[] {"--model=C:/m/best.onnx"});
+
+        assertThat(config.model()).isEqualTo("C:/m/best.onnx");
     }
 
     @Test

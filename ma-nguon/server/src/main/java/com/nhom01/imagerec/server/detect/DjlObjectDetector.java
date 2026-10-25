@@ -4,62 +4,127 @@ import ai.djl.MalformedModelException;
 import ai.djl.inference.Predictor;
 import ai.djl.modality.cv.Image;
 import ai.djl.modality.cv.ImageFactory;
-import ai.djl.modality.cv.output.BoundingBox;
-import ai.djl.modality.cv.output.DetectedObjects;
-import ai.djl.modality.cv.output.Rectangle;
 import ai.djl.repository.zoo.Criteria;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
-import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
 import com.nhom01.imagerec.common.Detection;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
 /**
- * Nhận dạng đối tượng bằng DJL + SSD-MobileNet (MXNet model zoo, VOC 20 lớp).
+ * Nhận dạng đối tượng bằng DJL + YOLOv8 (ONNX, engine OnnxRuntime, chạy CPU).
+ *
+ * <p>Mặc định nạp mô hình COCO 80 lớp đóng sẵn trong jar ({@code /models/yolov8s.onnx} và
+ * {@code /models/synset.txt}); có thể trỏ tới một file ONNX khác bằng {@link #DjlObjectDetector(Path)}
+ * (nhãn lấy từ {@code synset.txt} nằm cạnh file đó).
  *
  * <p>Thread-safe: mô hình dùng chung, mỗi lời gọi {@link #detect} tạo một Predictor riêng.
  */
 public final class DjlObjectDetector implements ObjectDetector {
 
-    /** Ngưỡng 0.3 (thay vì 0.5): SSD-MobileNet VOC chấm "bicycle" trong ảnh mẫu chỉ ~0.34. */
+    /** Ngưỡng tin cậy giữ 0.3 như bản SSD cũ để so sánh công bằng. */
     static final double MIN_CONFIDENCE = 0.3;
-    /** Mô hình SSD trả tọa độ theo ảnh đã resize về 512x512, không phải pixel ảnh gốc. */
-    private static final double MODEL_INPUT_SIZE = 512.0;
-    private static final String ARTIFACT_ID = "ssd";
-    private static final String BACKBONE = "mobilenet1.0";
-    private static final String DATASET = "voc";
+    private static final String RESOURCE_DIR = "/models/";
+    private static final String MODEL_FILE = "yolov8s.onnx";
+    private static final String SYNSET_FILE = "synset.txt";
     private static final double NANOS_PER_SECOND = 1_000_000_000.0;
 
-    private final ZooModel<Image, DetectedObjects> model;
+    private final ZooModel<Image, List<Detection>> model;
     private volatile boolean closed;
 
+    /** Dùng mô hình đóng sẵn trong jar. */
     public DjlObjectDetector() {
+        this(null);
+    }
+
+    /** @param onnx đường dẫn file ONNX, hoặc {@code null} để dùng mô hình trong jar */
+    public DjlObjectDetector(Path onnx) {
         long start = System.nanoTime();
-        Criteria<Image, DetectedObjects> criteria = Criteria.builder()
-                .optApplication(ai.djl.Application.CV.OBJECT_DETECTION)
-                .setTypes(Image.class, DetectedObjects.class)
-                .optEngine("MXNet")
-                .optGroupId("ai.djl.mxnet")
-                .optArtifactId(ARTIFACT_ID)
-                .optFilter("backbone", BACKBONE)
-                .optFilter("dataset", DATASET)
-                .optProgress(new ProgressBar())
-                .build();
+        Path tempDir = null;
         try {
-            model = criteria.loadModel();
+            Path modelFile;
+            List<String> labels;
+            if (onnx == null) {
+                tempDir = Files.createTempDirectory("imagerec-model");
+                modelFile = tempDir.resolve(MODEL_FILE);
+                copyResource(RESOURCE_DIR + MODEL_FILE, modelFile);
+                labels = readLabels(openResource(RESOURCE_DIR + SYNSET_FILE));
+            } else {
+                modelFile = onnx.toAbsolutePath();
+                if (!Files.isRegularFile(modelFile)) {
+                    throw new IllegalStateException("Không thấy file mô hình: " + modelFile);
+                }
+                Path synset = modelFile.resolveSibling(SYNSET_FILE);
+                if (!Files.isRegularFile(synset)) {
+                    throw new IllegalStateException("Thiếu " + SYNSET_FILE + " cạnh mô hình: " + synset);
+                }
+                labels = readLabels(Files.newInputStream(synset));
+            }
+            model = load(modelFile, new YoloTranslator(labels, MIN_CONFIDENCE));
+            System.out.printf("Model %s (%d nhãn) loaded in %.1f s%n", modelFile.getFileName(), labels.size(),
+                    (System.nanoTime() - start) / NANOS_PER_SECOND);
         } catch (IOException | ModelNotFoundException | MalformedModelException e) {
-            throw new IllegalStateException(
-                    "Không nạp được mô hình DJL " + ARTIFACT_ID + "/" + BACKBONE + "/" + DATASET
-                            + ": " + e.getMessage(), e);
+            throw new IllegalStateException("Không nạp được mô hình YOLO: " + e.getMessage(), e);
+        } finally {
+            deleteQuietly(tempDir);
         }
-        System.out.printf("Model %s loaded in %.1f s%n", model.getName(),
-                (System.nanoTime() - start) / NANOS_PER_SECOND);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ZooModel<Image, List<Detection>> load(Path modelFile, YoloTranslator translator)
+            throws IOException, ModelNotFoundException, MalformedModelException {
+        String fileName = modelFile.getFileName().toString();
+        String name = fileName.substring(0, fileName.length() - ".onnx".length());
+        Criteria<Image, List<Detection>> criteria = Criteria.builder()
+                .setTypes(Image.class, (Class<List<Detection>>) (Class<?>) List.class)
+                .optModelPath(modelFile.getParent())
+                .optModelName(name)
+                .optEngine("OnnxRuntime")
+                .optTranslator(translator)
+                .build();
+        return criteria.loadModel();
+    }
+
+    private static InputStream openResource(String path) throws IOException {
+        InputStream in = DjlObjectDetector.class.getResourceAsStream(path);
+        if (in == null) {
+            throw new IOException("Thiếu tài nguyên trong jar: " + path);
+        }
+        return in;
+    }
+
+    private static void copyResource(String path, Path target) throws IOException {
+        try (InputStream in = openResource(path)) {
+            Files.copy(in, target);
+        }
+    }
+
+    private static List<String> readLabels(InputStream in) throws IOException {
+        try (in) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8).lines()
+                    .map(String::strip)
+                    .filter(line -> !line.isEmpty())
+                    .toList();
+        }
+    }
+
+    /** ONNX Runtime đã nạp xong mô hình vào bộ nhớ nên file tạm không còn cần nữa. */
+    private static void deleteQuietly(Path dir) {
+        if (dir == null) {
+            return;
+        }
+        try (var files = Files.walk(dir)) {
+            files.sorted(java.util.Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+        } catch (IOException ignored) {
+            // file tạm sẽ được hệ điều hành dọn sau
+        }
     }
 
     @Override
@@ -68,33 +133,11 @@ public final class DjlObjectDetector implements ObjectDetector {
             throw new DetectionException("Detector đã đóng", new IllegalStateException("closed"));
         }
         Image input = ImageFactory.getInstance().fromImage(image);
-        try (Predictor<Image, DetectedObjects> predictor = model.newPredictor()) {
-            DetectedObjects found = predictor.predict(input);
-            List<Detection> result = new ArrayList<>();
-            for (DetectedObjects.DetectedObject object : found.<DetectedObjects.DetectedObject>items()) {
-                if (object.getProbability() < MIN_CONFIDENCE) {
-                    continue;
-                }
-                result.add(toDetection(object));
-            }
-            return result;
+        try (Predictor<Image, List<Detection>> predictor = model.newPredictor()) {
+            return predictor.predict(input);
         } catch (TranslateException | RuntimeException e) {
             throw new DetectionException("Suy luận thất bại: " + e.getMessage(), e);
         }
-    }
-
-    private static Detection toDetection(DetectedObjects.DetectedObject object) {
-        BoundingBox box = object.getBoundingBox();
-        Rectangle bounds = box.getBounds();
-        double x = clamp(bounds.getX() / MODEL_INPUT_SIZE);
-        double y = clamp(bounds.getY() / MODEL_INPUT_SIZE);
-        double w = Math.min(clamp(bounds.getWidth() / MODEL_INPUT_SIZE), 1.0 - x);
-        double h = Math.min(clamp(bounds.getHeight() / MODEL_INPUT_SIZE), 1.0 - y);
-        return new Detection(object.getClassName(), clamp(object.getProbability()), x, y, w, h);
-    }
-
-    private static double clamp(double value) {
-        return Math.max(0.0, Math.min(1.0, value));
     }
 
     @Override
@@ -103,10 +146,10 @@ public final class DjlObjectDetector implements ObjectDetector {
         model.close();
     }
 
-    /** Chạy thử: {@code DjlObjectDetector <đường dẫn ảnh>}. */
+    /** Chạy thử: {@code DjlObjectDetector <ảnh> [file.onnx]}. */
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Cách dùng: DjlObjectDetector <ảnh>");
+        if (args.length < 1 || args.length > 2) {
+            System.err.println("Cách dùng: DjlObjectDetector <ảnh> [file.onnx]");
             System.exit(2);
         }
         BufferedImage image = ImageIO.read(Path.of(args[0]).toFile());
@@ -114,7 +157,8 @@ public final class DjlObjectDetector implements ObjectDetector {
             System.err.println("Không đọc được ảnh: " + args[0]);
             System.exit(2);
         }
-        try (DjlObjectDetector detector = new DjlObjectDetector()) {
+        Path onnx = args.length == 2 ? Path.of(args[1]) : null;
+        try (DjlObjectDetector detector = new DjlObjectDetector(onnx)) {
             long start = System.nanoTime();
             List<Detection> detections = detector.detect(image);
             System.out.printf("Detected %d object(s) in %.2f s%n", detections.size(),

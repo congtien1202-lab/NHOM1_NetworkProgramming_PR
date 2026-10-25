@@ -6,8 +6,10 @@ import java.util.Set;
 
 /**
  * Cấu hình Server. Thứ tự ưu tiên: tham số dòng lệnh ({@code --port=5000}) &gt; server.properties &gt; mặc định.
+ *
+ * <p>{@code model}: đường dẫn file ONNX cho detector djl, {@code null} nghĩa là dùng mô hình đóng trong jar.
  */
-public record ServerConfig(int port, String detector, boolean gui, int maxClients) {
+public record ServerConfig(int port, String detector, boolean gui, int maxClients, String model) {
 
     public static final String DETECTOR_FAKE = "fake";
     public static final String DETECTOR_DJL = "djl";
@@ -35,7 +37,8 @@ public record ServerConfig(int port, String detector, boolean gui, int maxClient
         }
         boolean gui = booleanValue(merged, "gui", true);
         int maxClients = intValue(merged, "maxClients", DEFAULT_MAX_CLIENTS, 1, Integer.MAX_VALUE);
-        return new ServerConfig(port, detector, gui, maxClients);
+        String model = merged.getProperty("model", "").trim();
+        return new ServerConfig(port, detector, gui, maxClients, model.isEmpty() ? null : model);
     }
 
     private static int intValue(Properties props, String key, int fallback, int min, int max) {

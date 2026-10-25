@@ -13,3 +13,6 @@ nbactions*.xml
 Support/
 dist/
 /NhanDangAnh-Nhom01.zip
+
+# Mô hình ONNX không đưa vào git (tải từ GitHub Releases bằng scripts/download-model)
+*.onnx

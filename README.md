@@ -51,7 +51,7 @@ Mở terminal tại thư mục gốc của dự án:
 ```
 
 ### Tải mô hình trước khi build
-File mô hình `yolov8s.onnx` (~43 MB, YOLOv8s COCO 80 lớp của Ultralytics, giấy phép AGPL-3.0) không nằm trong git mà ở [GitHub Releases](https://github.com/congtien1202-lab/NHOM1_NetworkProgramming_PR/releases/tag/model-yolov8s-coco80-v1). Tải một lần, tại thư mục `ma-nguon`, trước khi build/test:
+File mô hình `yolov8s-coco81.onnx` (~43 MB, YOLOv8s của Ultralytics tinh chỉnh thêm lớp `monkey`, tổng 81 lớp, giấy phép AGPL-3.0) không nằm trong git mà ở [GitHub Releases](https://github.com/congtien1202-lab/NHOM1_NetworkProgramming_PR/releases/tag/model-yolov8s-coco81-v1). Tải một lần, tại thư mục `ma-nguon`, trước khi build/test:
 
 ```powershell
 cd ma-nguon

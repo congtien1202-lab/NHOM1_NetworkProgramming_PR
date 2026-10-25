@@ -63,6 +63,18 @@ class DjlObjectDetectorTest {
     }
 
     @Test
+    void detectsMonkeyAndNotPerson() throws Exception {
+        BufferedImage monkey;
+        try (InputStream in = DjlObjectDetectorTest.class.getResourceAsStream("/djl/monkey.jpg")) {
+            monkey = ImageIO.read(in);
+        }
+
+        List<Detection> detections = detector.detect(monkey);
+
+        assertThat(labels(detections)).contains("monkey").doesNotContain("person");
+    }
+
+    @Test
     void concurrentCallsReturnSameLabels() throws Exception {
         Set<String> expected = labels(detector.detect(sample));
         ExecutorService pool = Executors.newFixedThreadPool(THREADS);

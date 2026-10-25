@@ -57,3 +57,9 @@ Ultralytics và trọng số YOLOv8 dùng **AGPL-3.0**. Với đồ án học t�
 - Mô hình có 80 lớp COCO. COCO **không có lớp khỉ**; muốn khỉ không bị gán `person` phải fine-tune thêm lớp (ngoài phạm vi issue này).
 - Jar gộp của Server giảm từ ~90 MB (MXNet) xuống ~56 MB sau khi lọc native (ảnh gồm cả mô hình ~43 MB).
 - **Windows: JDK của Oracle kèm `msvcp140.dll`/`vcruntime140*.dll` bản cũ (14.36)**, trong khi `onnxruntime.dll` cần bản mới hơn. Tiến trình `java.exe` nạp bản cũ trước nên `UnsatisfiedLinkError: A dynamic link library (DLL) initialization routine failed` khi khởi tạo engine. Trên máy dev (JDK 22, Windows 11) đã gặp đúng lỗi này; chạy bình thường khi dùng bản JDK có ba file DLL này thay bằng bản mới từ System32. JDK phân phối không bundle các DLL này (ví dụ Temurin) hoặc Linux (VPS) không bị. Khi chạy Server hoặc test chậm cục bộ trên Windows, dùng JDK không bundle ba DLL này, hoặc chỉ định `-Djvm=<đường dẫn java.exe của JDK đó>` cho test.
+
+## Cập nhật: mô hình 81 lớp (COCO + monkey)
+
+- Mô hình mặc định trong jar đổi thành `yolov8s-coco81.onnx` (YOLOv8s tinh chỉnh thêm lớp `monkey`, đầu ra `[1, 85, 8400]`), `synset.txt` có 81 nhãn (`monkey` ở cuối). Bản 80 lớp (`yolov8s.onnx`, release `model-yolov8s-coco80-v1`) vẫn tải được nhưng không còn là mặc định.
+- Mô hình 81 lớp tải từ release `model-yolov8s-coco81-v1` bằng `scripts/download-model.*`. `YoloTranslator` không đổi: số lớp lấy từ `synset.txt`.
+- Quy trình huấn luyện, số đo và hạn chế nằm ở `docs/huan-luyen/nhat-ky.md`.

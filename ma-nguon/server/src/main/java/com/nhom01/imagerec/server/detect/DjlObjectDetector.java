@@ -25,6 +25,9 @@ import javax.imageio.ImageIO;
  * {@code /models/synset.txt}); có thể trỏ tới một file ONNX khác bằng {@link #DjlObjectDetector(Path)}
  * (nhãn lấy từ {@code synset.txt} nằm cạnh file đó).
  *
+ * <p>Khi mô hình có nhãn {@code monkey}, kết quả đi qua {@link MonkeyGuard}: ngoài ngưỡng riêng cho khỉ còn có
+ * mô hình YOLOv8s gốc 80 lớp ({@code /models/guard/}) nạp một lần và chỉ chạy khi còn box khỉ.
+ *
  * <p>Thread-safe: mô hình dùng chung, mỗi lời gọi {@link #detect} tạo một Predictor riêng.
  */
 public final class DjlObjectDetector implements ObjectDetector {
@@ -34,9 +37,13 @@ public final class DjlObjectDetector implements ObjectDetector {
     private static final String RESOURCE_DIR = "/models/";
     private static final String MODEL_FILE = "yolov8s-coco81.onnx";
     private static final String SYNSET_FILE = "synset.txt";
+    private static final String GUARD_DIR = "/models/guard/";
+    private static final String GUARD_MODEL_FILE = "yolov8s-coco80.onnx";
     private static final double NANOS_PER_SECOND = 1_000_000_000.0;
 
     private final ZooModel<Image, List<Detection>> model;
+    /** Mô hình gốc 80 lớp cho lớp bảo vệ khỉ, {@code null} nếu mô hình chính không có nhãn khỉ. */
+    private final ZooModel<Image, List<Detection>> guardModel;
     private volatile boolean closed;
 
     /** Dùng mô hình đóng sẵn trong jar. */
@@ -76,12 +83,26 @@ public final class DjlObjectDetector implements ObjectDetector {
                 labels = readLabels(Files.newInputStream(synset));
             }
             model = load(modelFile, new YoloTranslator(labels, MIN_CONFIDENCE), ortThreads);
+            guardModel = labels.contains(MonkeyGuard.MONKEY_LABEL) ? loadGuard(ortThreads) : null;
             System.out.printf("Model %s (%d nhãn) loaded in %.1f s%n", modelFile.getFileName(), labels.size(),
                     (System.nanoTime() - start) / NANOS_PER_SECOND);
         } catch (IOException | ModelNotFoundException | MalformedModelException e) {
             throw new IllegalStateException("Không nạp được mô hình YOLO: " + e.getMessage(), e);
         } finally {
             deleteQuietly(tempDir);
+        }
+    }
+
+    private static ZooModel<Image, List<Detection>> loadGuard(Integer ortThreads) throws IOException,
+            ModelNotFoundException, MalformedModelException {
+        Path dir = Files.createTempDirectory("imagerec-guard");
+        try {
+            Path file = dir.resolve(GUARD_MODEL_FILE);
+            copyResource(GUARD_DIR + GUARD_MODEL_FILE, file);
+            List<String> labels = readLabels(openResource(GUARD_DIR + SYNSET_FILE));
+            return load(file, new YoloTranslator(labels, MonkeyGuard.GUARD_MIN_CONFIDENCE), ortThreads);
+        } finally {
+            deleteQuietly(dir);
         }
     }
 
@@ -145,9 +166,18 @@ public final class DjlObjectDetector implements ObjectDetector {
         }
         Image input = ImageFactory.getInstance().fromImage(image);
         try (Predictor<Image, List<Detection>> predictor = model.newPredictor()) {
-            return predictor.predict(input);
+            List<Detection> found = predictor.predict(input);
+            return guardModel == null ? found : MonkeyGuard.apply(found, () -> guardPredict(input));
         } catch (TranslateException | RuntimeException e) {
             throw new DetectionException("Suy luận thất bại: " + e.getMessage(), e);
+        }
+    }
+
+    private List<Detection> guardPredict(Image input) {
+        try (Predictor<Image, List<Detection>> predictor = guardModel.newPredictor()) {
+            return predictor.predict(input);
+        } catch (TranslateException e) {
+            throw new IllegalStateException("Suy luận lớp bảo vệ thất bại: " + e.getMessage(), e);
         }
     }
 
@@ -155,6 +185,9 @@ public final class DjlObjectDetector implements ObjectDetector {
     public void close() {
         closed = true;
         model.close();
+        if (guardModel != null) {
+            guardModel.close();
+        }
     }
 
     /** Chạy thử: {@code DjlObjectDetector <ảnh> [file.onnx]}. */

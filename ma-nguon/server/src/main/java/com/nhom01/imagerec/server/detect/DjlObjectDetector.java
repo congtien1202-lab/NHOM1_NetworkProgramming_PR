@@ -46,6 +46,14 @@ public final class DjlObjectDetector implements ObjectDetector {
 
     /** @param onnx đường dẫn file ONNX, hoặc {@code null} để dùng mô hình trong jar */
     public DjlObjectDetector(Path onnx) {
+        this(onnx, null);
+    }
+
+    /**
+     * @param onnx       đường dẫn file ONNX, hoặc {@code null} để dùng mô hình trong jar
+     * @param ortThreads số luồng intra-op của ONNX Runtime cho mỗi lần suy luận, {@code null} = mặc định
+     */
+    public DjlObjectDetector(Path onnx, Integer ortThreads) {
         long start = System.nanoTime();
         Path tempDir = null;
         try {
@@ -67,7 +75,7 @@ public final class DjlObjectDetector implements ObjectDetector {
                 }
                 labels = readLabels(Files.newInputStream(synset));
             }
-            model = load(modelFile, new YoloTranslator(labels, MIN_CONFIDENCE));
+            model = load(modelFile, new YoloTranslator(labels, MIN_CONFIDENCE), ortThreads);
             System.out.printf("Model %s (%d nhãn) loaded in %.1f s%n", modelFile.getFileName(), labels.size(),
                     (System.nanoTime() - start) / NANOS_PER_SECOND);
         } catch (IOException | ModelNotFoundException | MalformedModelException e) {
@@ -78,18 +86,21 @@ public final class DjlObjectDetector implements ObjectDetector {
     }
 
     @SuppressWarnings("unchecked")
-    private static ZooModel<Image, List<Detection>> load(Path modelFile, YoloTranslator translator)
+    private static ZooModel<Image, List<Detection>> load(Path modelFile, YoloTranslator translator,
+            Integer ortThreads)
             throws IOException, ModelNotFoundException, MalformedModelException {
         String fileName = modelFile.getFileName().toString();
         String name = fileName.substring(0, fileName.length() - ".onnx".length());
-        Criteria<Image, List<Detection>> criteria = Criteria.builder()
+        Criteria.Builder<Image, List<Detection>> builder = Criteria.builder()
                 .setTypes(Image.class, (Class<List<Detection>>) (Class<?>) List.class)
                 .optModelPath(modelFile.getParent())
                 .optModelName(name)
                 .optEngine("OnnxRuntime")
-                .optTranslator(translator)
-                .build();
-        return criteria.loadModel();
+                .optTranslator(translator);
+        if (ortThreads != null) {
+            builder.optOption("intraOpNumThreads", String.valueOf(ortThreads));
+        }
+        return builder.build().loadModel();
     }
 
     private static InputStream openResource(String path) throws IOException {

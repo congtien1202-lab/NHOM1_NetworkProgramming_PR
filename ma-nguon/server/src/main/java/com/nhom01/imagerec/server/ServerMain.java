@@ -69,8 +69,8 @@ public final class ServerMain {
         }
         try {
             Class<?> clazz = Class.forName("com.nhom01.imagerec.server.detect.DjlObjectDetector");
-            return (ObjectDetector) clazz.getConstructor(Path.class)
-                    .newInstance(config.model() == null ? null : Path.of(config.model()));
+            return (ObjectDetector) clazz.getConstructor(Path.class, Integer.class)
+                    .newInstance(config.model() == null ? null : Path.of(config.model()), config.ortThreads());
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("PLAN-B: DjlObjectDetector chưa được cài đặt", e);
         } catch (ReflectiveOperationException e) {
